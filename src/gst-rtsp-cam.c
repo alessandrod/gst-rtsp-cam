@@ -31,6 +31,8 @@ static int video_width = -1;
 static int video_height = -1;
 static char *audio_device = NULL;
 static char *audio_codec = NULL;
+static gboolean no_audio = FALSE;
+static gboolean no_video = FALSE;
 
 static const GOptionEntry option_entries[] = {
   {"video-device", 0, 0, G_OPTION_ARG_STRING, &video_device,
@@ -45,6 +47,10 @@ static const GOptionEntry option_entries[] = {
       "The audio height", NULL},
   {"audio-codec", 0, 0, G_OPTION_ARG_STRING, &audio_codec,
       "The audio codec", NULL},
+  {"no-audio", 0, 0, G_OPTION_ARG_NONE, &no_audio,
+      "Don't stream audio", NULL},
+  {"no-video", 0, 0, G_OPTION_ARG_NONE, &no_video,
+      "Don't stream video", NULL},
   {NULL}
 };
 
@@ -104,9 +110,11 @@ main(int argc, char **argv)
   gst_object_set_name (GST_OBJECT (factory), name);
   g_free (name);
   g_object_set (factory, "video-device", video_device,
+      "video", !no_video,
       "video-width", video_width,
       "video-height", video_height,
       "video-codec", video_codec,
+      "audio", !no_audio,
       "audio-device", audio_device,
       "audio-codec", audio_codec,
       NULL);

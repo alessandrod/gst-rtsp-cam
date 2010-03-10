@@ -41,6 +41,9 @@ typedef struct _GstRTSPCamMediaFactoryClass GstRTSPCamMediaFactoryClass;
 struct _GstRTSPCamMediaFactory {
   GstRTSPMediaFactory factory;
 
+  gboolean video;
+  gboolean audio;
+
   gchar *video_device;
   gint video_width;
   gint video_height;

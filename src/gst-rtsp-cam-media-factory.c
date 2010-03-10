@@ -27,10 +27,12 @@
 enum
 {
   PROP_0,
+  PROP_VIDEO,
   PROP_VIDEO_DEVICE,
   PROP_VIDEO_WIDTH,
   PROP_VIDEO_HEIGHT,
   PROP_VIDEO_CODEC,
+  PROP_AUDIO,
   PROP_AUDIO_DEVICE,
   PROP_AUDIO_CODEC
 };
@@ -59,10 +61,12 @@ static GstElement * gst_rtsp_cam_media_factory_get_element (GstRTSPMediaFactory 
 
 G_DEFINE_TYPE (GstRTSPCamMediaFactory, gst_rtsp_cam_media_factory, GST_TYPE_RTSP_MEDIA_FACTORY);
   
+#define DEFAULT_VIDEO TRUE
 #define DEFAULT_VIDEO_DEVICE NULL
 #define DEFAULT_VIDEO_WIDTH -1
 #define DEFAULT_VIDEO_HEIGHT -1
 #define DEFAULT_VIDEO_CODEC "theora"
+#define DEFAULT_AUDIO TRUE
 #define DEFAULT_AUDIO_DEVICE NULL
 #define DEFAULT_AUDIO_CODEC "vorbis"
 
@@ -96,6 +100,10 @@ gst_rtsp_cam_media_factory_class_init (GstRTSPCamMediaFactoryClass * klass)
 
   media_factory_class->get_element = gst_rtsp_cam_media_factory_get_element;
 
+  g_object_class_install_property (gobject_class, PROP_VIDEO,
+      g_param_spec_boolean ("video", "Video", "video",
+          DEFAULT_VIDEO, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+
   g_object_class_install_property (gobject_class, PROP_VIDEO_DEVICE,
       g_param_spec_string ("video-device", "Video device", "video device",
           DEFAULT_VIDEO_DEVICE, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
@@ -111,6 +119,10 @@ gst_rtsp_cam_media_factory_class_init (GstRTSPCamMediaFactoryClass * klass)
   g_object_class_install_property (gobject_class, PROP_VIDEO_HEIGHT,
       g_param_spec_int ("video-height", "Video height", "video height",
           -1, G_MAXINT32, DEFAULT_VIDEO_HEIGHT, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+
+  g_object_class_install_property (gobject_class, PROP_AUDIO,
+      g_param_spec_boolean ("audio", "Audio", "video",
+          DEFAULT_AUDIO, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
   g_object_class_install_property (gobject_class, PROP_AUDIO_DEVICE,
       g_param_spec_string ("audio-device", "Video device", "audio device",
@@ -152,6 +164,12 @@ gst_rtsp_cam_media_factory_get_property (GObject *object, guint propid,
   GstRTSPCamMediaFactory *factory = GST_RTSP_CAM_MEDIA_FACTORY (object);
 
   switch (propid) {
+    case PROP_VIDEO:
+      g_value_set_boolean (value, factory->video);
+      break;
+    case PROP_AUDIO:
+      g_value_set_boolean (value, factory->audio);
+      break;
     case PROP_VIDEO_DEVICE:
       g_value_set_string (value, factory->video_device);
       break;
@@ -182,6 +200,12 @@ gst_rtsp_cam_media_factory_set_property (GObject *object, guint propid,
   GstRTSPCamMediaFactory *factory = GST_RTSP_CAM_MEDIA_FACTORY (object);
 
   switch (propid) {
+    case PROP_VIDEO:
+      factory->video = g_value_get_boolean (value);
+      break;
+    case PROP_AUDIO:
+      factory->audio = g_value_get_boolean (value);
+      break;
     case PROP_VIDEO_DEVICE:
       g_free (factory->video_device);
       factory->video_device = g_value_dup_string (value);
@@ -367,17 +391,21 @@ gst_rtsp_cam_media_factory_get_element (GstRTSPMediaFactory *media_factory,
 
   bin = gst_bin_new (NULL);
 
-  video_payloader = create_video_payloader(factory, bin, payloader_number);
-  if (video_payloader) {
-    GST_INFO_OBJECT (factory, "created video payloader %s",
-        gst_element_get_name (video_payloader));
-    payloader_number += 1;
+  if (factory->video) {
+    video_payloader = create_video_payloader(factory, bin, payloader_number);
+    if (video_payloader) {
+      GST_INFO_OBJECT (factory, "created video payloader %s",
+          gst_element_get_name (video_payloader));
+      payloader_number += 1;
+    }
   }
 
-  audio_payloader = create_audio_payloader(factory, bin, payloader_number);
-  if (audio_payloader)
-    GST_INFO_OBJECT (factory, "created audio payloader %s",
-          gst_element_get_name (audio_payloader));
+  if (factory->audio) {
+    audio_payloader = create_audio_payloader(factory, bin, payloader_number);
+    if (audio_payloader)
+      GST_INFO_OBJECT (factory, "created audio payloader %s",
+            gst_element_get_name (audio_payloader));
+  }
 
   if (!video_payloader && !audio_payloader) {
     GST_ERROR_OBJECT (factory, "no audio and no video");
