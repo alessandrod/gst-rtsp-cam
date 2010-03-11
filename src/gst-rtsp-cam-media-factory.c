@@ -58,6 +58,7 @@ static void gst_rtsp_cam_media_factory_set_property (GObject *object, guint prop
 static void gst_rtsp_cam_media_factory_finalize (GObject * obj);
 static GstElement * gst_rtsp_cam_media_factory_get_element (GstRTSPMediaFactory *factory,
     const GstRTSPUrl *url);
+static gchar *gst_rtsp_cam_media_factory_gen_key (GstRTSPMediaFactory *factory, const GstRTSPUrl *url);
 
 G_DEFINE_TYPE (GstRTSPCamMediaFactory, gst_rtsp_cam_media_factory, GST_TYPE_RTSP_MEDIA_FACTORY);
   
@@ -99,6 +100,7 @@ gst_rtsp_cam_media_factory_class_init (GstRTSPCamMediaFactoryClass * klass)
   gobject_class->finalize = gst_rtsp_cam_media_factory_finalize;
 
   media_factory_class->get_element = gst_rtsp_cam_media_factory_get_element;
+  media_factory_class->gen_key = gst_rtsp_cam_media_factory_gen_key;
 
   g_object_class_install_property (gobject_class, PROP_VIDEO,
       g_param_spec_boolean ("video", "Video", "video",
@@ -415,5 +417,11 @@ gst_rtsp_cam_media_factory_get_element (GstRTSPMediaFactory *media_factory,
   }
 
   return bin;
+}
+
+static gchar *
+gst_rtsp_cam_media_factory_gen_key (GstRTSPMediaFactory *factory, const GstRTSPUrl *url)
+{
+  return g_strdup (url->abspath);
 }
 
