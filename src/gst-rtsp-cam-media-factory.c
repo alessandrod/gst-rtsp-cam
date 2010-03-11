@@ -31,6 +31,7 @@ enum
   PROP_VIDEO_DEVICE,
   PROP_VIDEO_WIDTH,
   PROP_VIDEO_HEIGHT,
+  PROP_VIDEO_FRAMERATE,
   PROP_VIDEO_CODEC,
   PROP_AUDIO,
   PROP_AUDIO_DEVICE,
@@ -66,6 +67,8 @@ G_DEFINE_TYPE (GstRTSPCamMediaFactory, gst_rtsp_cam_media_factory, GST_TYPE_RTSP
 #define DEFAULT_VIDEO_DEVICE NULL
 #define DEFAULT_VIDEO_WIDTH -1
 #define DEFAULT_VIDEO_HEIGHT -1
+#define DEFAULT_VIDEO_FRAMERATE_N 0
+#define DEFAULT_VIDEO_FRAMERATE_D 1
 #define DEFAULT_VIDEO_CODEC "theora"
 #define DEFAULT_AUDIO TRUE
 #define DEFAULT_AUDIO_DEVICE NULL
@@ -121,6 +124,12 @@ gst_rtsp_cam_media_factory_class_init (GstRTSPCamMediaFactoryClass * klass)
   g_object_class_install_property (gobject_class, PROP_VIDEO_HEIGHT,
       g_param_spec_int ("video-height", "Video height", "video height",
           -1, G_MAXINT32, DEFAULT_VIDEO_HEIGHT, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+
+  g_object_class_install_property (gobject_class, PROP_VIDEO_FRAMERATE,
+      gst_param_spec_fraction ("video-framerate", "Video framerate", "video framerate",
+          0, 1, G_MAXINT, 1,
+          DEFAULT_VIDEO_FRAMERATE_N, DEFAULT_VIDEO_FRAMERATE_D,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT));  
 
   g_object_class_install_property (gobject_class, PROP_AUDIO,
       g_param_spec_boolean ("audio", "Audio", "video",
@@ -181,6 +190,9 @@ gst_rtsp_cam_media_factory_get_property (GObject *object, guint propid,
     case PROP_VIDEO_HEIGHT:
       g_value_set_int (value, factory->video_height);
       break;
+    case PROP_VIDEO_FRAMERATE:
+      gst_value_set_fraction (value, factory->fps_n, factory->fps_d);
+      break;
     case PROP_VIDEO_CODEC:
       g_value_set_string (value, factory->video_codec);
       break;
@@ -219,6 +231,10 @@ gst_rtsp_cam_media_factory_set_property (GObject *object, guint propid,
       break;
     case PROP_VIDEO_HEIGHT:
       factory->video_height = g_value_get_int (value);
+      break;
+    case PROP_VIDEO_FRAMERATE:
+      factory->fps_n = gst_value_get_fraction_numerator (value);
+      factory->fps_d = gst_value_get_fraction_denominator (value);
       break;
     case PROP_VIDEO_CODEC:
       g_free (factory->video_codec);
@@ -302,7 +318,7 @@ create_video_payloader (GstRTSPCamMediaFactory *factory,
 {
   GstElement *pay;
   GstElement *videosrc;
-  GstElement *queue, *ffmpegcolorspace, *videoscale;
+  GstElement *queue, *ffmpegcolorspace, *videoscale, *videorate;
   GstElement *capsfilter;
   gchar *image_formats[] = {"video/x-raw-rgb",
       "video/x-raw-yuv", "video/x-raw-gray", NULL};
@@ -320,12 +336,13 @@ create_video_payloader (GstRTSPCamMediaFactory *factory,
 
   queue = gst_element_factory_make ("queue", NULL);
   ffmpegcolorspace = gst_element_factory_make ("ffmpegcolorspace", NULL);
+  videorate = gst_element_factory_make ("videorate", NULL);
   videoscale = gst_element_factory_make ("videoscale", NULL);
   capsfilter = gst_element_factory_make ("capsfilter", NULL);
 
   gst_bin_add_many (GST_BIN (bin), videosrc, queue, ffmpegcolorspace, videoscale,
-      capsfilter, pay, NULL);
-  gst_element_link_many (videosrc, queue, ffmpegcolorspace, videoscale,
+      videorate, capsfilter, pay, NULL);
+  gst_element_link_many (videosrc, queue, videorate, ffmpegcolorspace, videoscale,
       capsfilter, pay, NULL);
 
   video_caps = gst_caps_new_empty ();
@@ -337,6 +354,10 @@ create_video_payloader (GstRTSPCamMediaFactory *factory,
   
     if (factory->video_height != -1)
       gst_structure_set (structure, "height", G_TYPE_INT, factory->video_height, NULL);
+
+    if (factory->fps_n != 0 && factory->fps_d != 0)
+      gst_structure_set (structure, "framerate", GST_TYPE_FRACTION,
+          factory->fps_n, factory->fps_d, NULL);
 
     gst_caps_append_structure (video_caps, structure);
   }

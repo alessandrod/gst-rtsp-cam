@@ -29,6 +29,8 @@ static char *video_device = NULL;
 static char *video_codec = NULL;
 static int video_width = -1;
 static int video_height = -1;
+static int fps_n = 0;
+static int fps_d = 1;
 static char *audio_device = NULL;
 static char *audio_codec = NULL;
 static gboolean no_audio = FALSE;
@@ -43,6 +45,10 @@ static const GOptionEntry option_entries[] = {
       "The video width", NULL},
   {"video-height", 0, 0, G_OPTION_ARG_INT, &video_height,
       "The video height", NULL},
+  {"video-fps-n", 0, 0, G_OPTION_ARG_INT, &fps_n,
+      "The video framerate numerator", NULL},
+  {"video-fps-d", 0, 0, G_OPTION_ARG_INT, &fps_d,
+      "The video framerate denominator", NULL},
   {"audio-device", 0, 0, G_OPTION_ARG_STRING, &audio_device,
       "The audio height", NULL},
   {"audio-codec", 0, 0, G_OPTION_ARG_STRING, &audio_codec,
@@ -114,6 +120,7 @@ main(int argc, char **argv)
       "video-width", video_width,
       "video-height", video_height,
       "video-codec", video_codec,
+      "video-framerate", fps_n, fps_d,
       "audio", !no_audio,
       "audio-device", audio_device,
       "audio-codec", audio_codec,
