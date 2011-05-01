@@ -331,7 +331,7 @@ create_video_payloader (GstRTSPCamMediaFactory *factory,
   if (pay == NULL)
     return NULL;
 
-  videosrc = gst_element_factory_make ("v4l2src", NULL);
+  videosrc = gst_element_factory_make ("autovideosrc", NULL);
   if (factory->video_device)
     g_object_set (videosrc, "device", factory->video_device, NULL);
 
