@@ -6,7 +6,7 @@ libgstrtspcam_la_SOURCES = \
 
 libgstrtspcam_la_CFLAGS = $(GST_CFLAGS) $(GST_RTSP_SERVER_CFLAGS) -Wall -Werror
 libgstrtspcam_la_LIBADD = $(GST_LIBS) $(GST_RTSP_SERVER_LIBS) -lgstinterfaces-0.10
-libgstrtspcam_la_LDFLAGS = -avoid-version -no-undefined -dynamic
+libgstrtspcam_la_LDFLAGS = -avoid-version -no-undefined -static
 
 gst_rtsp_cam_SOURCES = \
 	gst-rtsp-cam.c
