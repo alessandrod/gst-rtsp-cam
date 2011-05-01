@@ -74,6 +74,7 @@ main(int argc, char **argv)
   GOptionGroup *gst_group;
   gboolean res;
   GError *error = NULL;
+  gchar *service;
 
   g_type_init ();
   g_thread_init (NULL);
@@ -109,11 +110,12 @@ main(int argc, char **argv)
   loop = g_main_loop_new (NULL, FALSE);
 
   server = gst_rtsp_server_new ();
-  gst_rtsp_server_set_port (server, local_url->port);
+  service = g_strdup_printf ("%d", local_url->port);
+  gst_rtsp_server_set_service (server, service);
+  g_free (service);
 
   name = g_strdup_printf ("rtsp-cam-factory-%s", argv[2]);
   factory = gst_rtsp_cam_media_factory_new ();
-  gst_object_set_name (GST_OBJECT (factory), name);
   g_free (name);
   g_object_set (factory, "video-device", video_device,
       "video", !no_video,
