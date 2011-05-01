@@ -85,6 +85,7 @@ GstStaticCaps rtp_mpeg4_generic_audio_caps =
 static CodecDescriptor codecs[] = {
   { "theora", "theoraenc ! rtptheorapay name=pay%d pt=96" },
   { "h264", "x264enc ! rtph264pay name=pay%d pt=96" },
+  { "vp8", "vp8enc quality=10 ! rtpvp8pay name=pay%d pt=96" },
   { "vorbis", "vorbisenc ! rtpvorbispay name=pay%d pt=97" },
   { "amrnb", "amrnbenc ! rtpamrpay name=pay%d pt=97" },
   { NULL, NULL }
