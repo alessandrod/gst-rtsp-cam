@@ -74,14 +74,6 @@ G_DEFINE_TYPE (GstRTSPCamMediaFactory, gst_rtsp_cam_media_factory, GST_TYPE_RTSP
 #define DEFAULT_AUDIO_DEVICE NULL
 #define DEFAULT_AUDIO_CODEC "vorbis"
 
-GstStaticCaps rtp_h264_video_caps =
-    GST_STATIC_CAPS ("application/x-rtp, "
-        "encoding-name=(string)H264, media=(string)video");
-
-GstStaticCaps rtp_mpeg4_generic_audio_caps =
-    GST_STATIC_CAPS ("application/x-rtp, "
-        "encoding-name=(string)MPEG4-GENERIC, media=(string)audio");
-
 static CodecDescriptor codecs[] = {
   { "theora", "theoraenc ! rtptheorapay name=pay%d pt=96" },
   { "h264", "x264enc ! rtph264pay name=pay%d pt=96" },
