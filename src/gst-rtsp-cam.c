@@ -110,6 +110,7 @@ main(int argc, char **argv)
   loop = g_main_loop_new (NULL, FALSE);
 
   server = gst_rtsp_server_new ();
+  gst_rtsp_server_set_address (server, local_url->host);
   service = g_strdup_printf ("%d", local_url->port);
   gst_rtsp_server_set_service (server, service);
   g_free (service);
