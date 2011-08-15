@@ -378,7 +378,7 @@ create_audio_payloader (GstRTSPCamMediaFactory *factory,
   if (pay == NULL)
     return NULL;
 
-  audiosrc = gst_element_factory_make("pulsesrc", NULL);
+  audiosrc = gst_element_factory_make("autoaudiosrc", NULL);
   if (audiosrc == NULL) {
     GST_WARNING_OBJECT (factory, "couldn't create audio source");
     gst_object_unref (pay);
