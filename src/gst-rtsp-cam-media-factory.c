@@ -76,7 +76,7 @@ G_DEFINE_TYPE (GstRTSPCamMediaFactory, gst_rtsp_cam_media_factory, GST_TYPE_RTSP
 
 static CodecDescriptor codecs[] = {
   { "theora", "theoraenc ! rtptheorapay name=pay%d pt=96" },
-  { "h264", "x264enc tune=zerolatency ! rtph264pay name=pay%d pt=96" },
+  { "h264", "x264enc tune=zerolatency speed-preset=3 ! rtph264pay name=pay%d pt=96" },
   { "vp8", "vp8enc quality=10 ! rtpvp8pay name=pay%d pt=96" },
   { "vorbis", "vorbisenc ! rtpvorbispay name=pay%d pt=97" },
   { "amrnb", "amrnbenc ! rtpamrpay name=pay%d pt=97" },
