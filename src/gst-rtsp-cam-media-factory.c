@@ -330,6 +330,7 @@ create_video_payloader (GstRTSPCamMediaFactory *factory,
   queue = gst_element_factory_make ("queue", NULL);
   ffmpegcolorspace = gst_element_factory_make ("ffmpegcolorspace", NULL);
   videorate = gst_element_factory_make ("videorate", NULL);
+  g_object_set (videorate, "skip-to-first", TRUE, "drop-only", TRUE, NULL);
   videoscale = gst_element_factory_make ("videoscale", NULL);
   capsfilter = gst_element_factory_make ("capsfilter", NULL);
 
