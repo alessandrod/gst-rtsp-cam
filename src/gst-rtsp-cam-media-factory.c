@@ -313,8 +313,8 @@ create_video_payloader (GstRTSPCamMediaFactory *factory,
   GstElement *videosrc;
   GstElement *queue, *ffmpegcolorspace, *videoscale, *videorate;
   GstElement *capsfilter;
-  gchar *image_formats[] = {"video/x-raw-rgb",
-      "video/x-raw-yuv", "video/x-raw-gray", NULL};
+  gchar *image_formats[] = {"video/x-raw-yuv",
+      "video/x-raw-rgb", "video/x-raw-gray", NULL};
   GstCaps *video_caps;
   gchar *capss;
   int i;
