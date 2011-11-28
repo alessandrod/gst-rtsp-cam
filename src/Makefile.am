@@ -4,7 +4,7 @@ lib_LTLIBRARIES = libgstrtspcam.la
 libgstrtspcam_la_SOURCES = \
 	gst-rtsp-cam-media-factory.c
 
-libgstrtspcam_la_CFLAGS = $(GST_CFLAGS) $(GST_RTSP_SERVER_CFLAGS) -Wall -Werror
+libgstrtspcam_la_CFLAGS = $(GST_CFLAGS) $(GST_RTSP_SERVER_CFLAGS) -fPIC -Wall -Werror
 libgstrtspcam_la_LIBADD = $(GST_LIBS) $(GST_RTSP_SERVER_LIBS) -lgstinterfaces-0.10
 libgstrtspcam_la_LDFLAGS = -avoid-version -no-undefined -static
 
