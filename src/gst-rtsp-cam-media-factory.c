@@ -33,6 +33,7 @@ enum
   PROP_VIDEO_HEIGHT,
   PROP_VIDEO_FRAMERATE,
   PROP_VIDEO_CODEC,
+  PROP_VIDEO_CODEC_OPTIONS,
   PROP_AUDIO,
   PROP_AUDIO_DEVICE,
   PROP_AUDIO_CODEC
@@ -70,16 +71,17 @@ G_DEFINE_TYPE (GstRTSPCamMediaFactory, gst_rtsp_cam_media_factory, GST_TYPE_RTSP
 #define DEFAULT_VIDEO_FRAMERATE_N 0
 #define DEFAULT_VIDEO_FRAMERATE_D 1
 #define DEFAULT_VIDEO_CODEC "theora"
+#define DEFAULT_VIDEO_CODEC_OPTIONS ""
 #define DEFAULT_AUDIO TRUE
 #define DEFAULT_AUDIO_DEVICE NULL
 #define DEFAULT_AUDIO_CODEC "vorbis"
 
 static CodecDescriptor codecs[] = {
-  { "theora", "theoraenc ! rtptheorapay name=pay%d pt=96" },
-  { "h264", "x264enc tune=zerolatency speed-preset=3 ! rtph264pay name=pay%d pt=96" },
-  { "vp8", "vp8enc quality=10 ! rtpvp8pay name=pay%d pt=96" },
-  { "vorbis", "vorbisenc ! rtpvorbispay name=pay%d pt=97" },
-  { "amrnb", "amrnbenc ! rtpamrpay name=pay%d pt=97" },
+  { "theora", "theoraenc %s ! rtptheorapay name=pay%d pt=96" },
+  { "h264", "x264enc %s ! rtph264pay name=pay%d pt=96" },
+  { "vp8", "vp8enc %s ! rtpvp8pay name=pay%d pt=96" },
+  { "vorbis", "vorbisenc %s ! rtpvorbispay name=pay%d pt=97" },
+  { "amrnb", "amrnbenc %s ! rtpamrpay name=pay%d pt=97" },
   { NULL, NULL }
 };
 
@@ -109,6 +111,11 @@ gst_rtsp_cam_media_factory_class_init (GstRTSPCamMediaFactoryClass * klass)
   g_object_class_install_property (gobject_class, PROP_VIDEO_CODEC,
       g_param_spec_string ("video-codec", "Video codec", "video codec",
           DEFAULT_VIDEO_CODEC, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+
+  g_object_class_install_property (gobject_class, PROP_VIDEO_CODEC_OPTIONS,
+      g_param_spec_string ("video-codec-options", "Video codec options",
+          "video codec options", DEFAULT_VIDEO_CODEC,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
   g_object_class_install_property (gobject_class, PROP_VIDEO_WIDTH,
       g_param_spec_int ("video-width", "Video width", "video width",
@@ -189,6 +196,9 @@ gst_rtsp_cam_media_factory_get_property (GObject *object, guint propid,
     case PROP_VIDEO_CODEC:
       g_value_set_string (value, factory->video_codec);
       break;
+    case PROP_VIDEO_CODEC_OPTIONS:
+      g_value_set_string (value, factory->video_codec_options);
+      break;
     case PROP_AUDIO_DEVICE:
       g_value_set_string (value, factory->audio_device);
       break;
@@ -235,6 +245,12 @@ gst_rtsp_cam_media_factory_set_property (GObject *object, guint propid,
       if (factory->video_codec == NULL)
         factory->video_codec = g_strdup (DEFAULT_VIDEO_CODEC);
       break;
+    case PROP_VIDEO_CODEC_OPTIONS:
+      g_free (factory->video_codec_options);
+      factory->video_codec_options = g_value_dup_string (value);
+      if (factory->video_codec_options == NULL)
+        factory->video_codec_options = g_strdup (DEFAULT_VIDEO_CODEC_OPTIONS);
+      break;
     case PROP_AUDIO_DEVICE:
       g_free (factory->audio_device);
       factory->audio_device = g_value_dup_string (value);
@@ -279,7 +295,7 @@ find_codec (GstRTSPCamMediaFactory *factory, gchar *codec_name)
 
 static GstElement *
 create_payloader (GstRTSPCamMediaFactory *factory,
-    gchar *codec_name, gint payloader_number)
+    gchar *codec_name, gchar *codec_options, gint payloader_number)
 {
   CodecDescriptor *codec;
   GstElement *bin;
@@ -293,7 +309,7 @@ create_payloader (GstRTSPCamMediaFactory *factory,
     return NULL;
   }
 
-  description = g_strdup_printf (codec->bin, payloader_number);
+  description = g_strdup_printf (codec->bin, codec_options, payloader_number);
   GST_DEBUG_OBJECT (factory, "creating bin %s", codec->bin);
   bin = gst_parse_bin_from_description (description, TRUE, NULL);
   g_free (description);
@@ -319,7 +335,8 @@ create_video_payloader (GstRTSPCamMediaFactory *factory,
   gchar *capss;
   int i;
 
-  pay = create_payloader (factory, factory->video_codec, payloader_number);
+  pay = create_payloader (factory, factory->video_codec,
+      factory->video_codec_options, payloader_number);
   if (pay == NULL)
     return NULL;
 
@@ -374,7 +391,7 @@ create_audio_payloader (GstRTSPCamMediaFactory *factory,
   GstElement *audioconvert;
   GstElement *audiorate;
 
-  pay = create_payloader (factory, factory->audio_codec, payloader_number);
+  pay = create_payloader (factory, factory->audio_codec, "", payloader_number);
   if (pay == NULL)
     return NULL;
 

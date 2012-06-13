@@ -27,6 +27,7 @@ timeout (GstRTSPServer *server, gboolean ignored)
 
 static char *video_device = NULL;
 static char *video_codec = NULL;
+static char *video_codec_options = NULL;
 static int video_width = -1;
 static int video_height = -1;
 static int fps_n = 0;
@@ -41,6 +42,8 @@ static const GOptionEntry option_entries[] = {
       "The video height", NULL},
   {"video-codec", 0, 0, G_OPTION_ARG_STRING, &video_codec,
       "The video codec", NULL},
+  {"video-codec-options", 0, 0, G_OPTION_ARG_STRING, &video_codec_options,
+      "The video codec options", NULL},
   {"video-width", 0, 0, G_OPTION_ARG_INT, &video_width,
       "The video width", NULL},
   {"video-height", 0, 0, G_OPTION_ARG_INT, &video_height,
@@ -123,6 +126,7 @@ main(int argc, char **argv)
       "video-width", video_width,
       "video-height", video_height,
       "video-codec", video_codec,
+      "video-codec-options", video_codec_options,
       "video-framerate", fps_n, fps_d,
       "audio", !no_audio,
       "audio-device", audio_device,
