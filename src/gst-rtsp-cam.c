@@ -34,6 +34,7 @@ static int fps_n = 0;
 static int fps_d = 1;
 static char *audio_device = NULL;
 static char *audio_codec = NULL;
+static char *audio_codec_options = NULL;
 static gboolean no_audio = FALSE;
 static gboolean no_video = FALSE;
 
@@ -56,6 +57,8 @@ static const GOptionEntry option_entries[] = {
       "The audio height", NULL},
   {"audio-codec", 0, 0, G_OPTION_ARG_STRING, &audio_codec,
       "The audio codec", NULL},
+  {"audio-codec-options", 0, 0, G_OPTION_ARG_STRING, &audio_codec_options,
+      "The audio codec options", NULL},
   {"no-audio", 0, 0, G_OPTION_ARG_NONE, &no_audio,
       "Don't stream audio", NULL},
   {"no-video", 0, 0, G_OPTION_ARG_NONE, &no_video,
@@ -131,7 +134,11 @@ main(int argc, char **argv)
       "audio", !no_audio,
       "audio-device", audio_device,
       "audio-codec", audio_codec,
+      "audio-codec-options", audio_codec_options,
       NULL);
+
+  g_printerr ("video-codec-options: %s\n", video_codec_options);
+  g_printerr ("audio-codec-options: %s\n", audio_codec_options);
 
   gst_rtsp_media_factory_set_shared (GST_RTSP_MEDIA_FACTORY (factory), TRUE);
   mapping = gst_rtsp_server_get_media_mapping (server);

@@ -36,7 +36,8 @@ enum
   PROP_VIDEO_CODEC_OPTIONS,
   PROP_AUDIO,
   PROP_AUDIO_DEVICE,
-  PROP_AUDIO_CODEC
+  PROP_AUDIO_CODEC,
+  PROP_AUDIO_CODEC_OPTIONS
 };
 
 enum
@@ -75,10 +76,12 @@ G_DEFINE_TYPE (GstRTSPCamMediaFactory, gst_rtsp_cam_media_factory, GST_TYPE_RTSP
 #define DEFAULT_AUDIO TRUE
 #define DEFAULT_AUDIO_DEVICE NULL
 #define DEFAULT_AUDIO_CODEC "vorbis"
+#define DEFAULT_AUDIO_CODEC_OPTIONS ""
 
 static CodecDescriptor codecs[] = {
   { "theora", "theoraenc %s ! rtptheorapay name=pay%d pt=96" },
   { "h264", "x264enc %s ! rtph264pay name=pay%d pt=96" },
+  { "mp3", "lame %s ! rtpmpapay name=pay%d pt=97" },
   { "vp8", "vp8enc %s ! rtpvp8pay name=pay%d pt=96" },
   { "vorbis", "vorbisenc %s ! rtpvorbispay name=pay%d pt=97" },
   { "amrnb", "amrnbenc %s ! rtpamrpay name=pay%d pt=97" },
@@ -143,6 +146,10 @@ gst_rtsp_cam_media_factory_class_init (GstRTSPCamMediaFactoryClass * klass)
       g_param_spec_string ("audio-codec", "Video codec", "audio codec",
           DEFAULT_AUDIO_CODEC, G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
+  g_object_class_install_property (gobject_class, PROP_AUDIO_CODEC_OPTIONS,
+      g_param_spec_string ("audio-codec-options", "Audio codec options",
+          "audio codec options", DEFAULT_AUDIO_CODEC,
+          G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
   GST_DEBUG_CATEGORY_INIT (rtsp_cam_media_factory_debug,
       "rtspcammediafactory", 0, "RTSP Cam Media Factory");
@@ -205,6 +212,9 @@ gst_rtsp_cam_media_factory_get_property (GObject *object, guint propid,
     case PROP_AUDIO_CODEC:
       g_value_set_string (value, factory->audio_codec);
       break;
+    case PROP_AUDIO_CODEC_OPTIONS:
+      g_value_set_string (value, factory->audio_codec_options);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, propid, pspec);
   }
@@ -263,6 +273,12 @@ gst_rtsp_cam_media_factory_set_property (GObject *object, guint propid,
       if (factory->audio_codec == NULL)
         factory->audio_codec = g_strdup (DEFAULT_AUDIO_CODEC);
       break;
+    case PROP_AUDIO_CODEC_OPTIONS:
+      g_free (factory->audio_codec_options);
+      factory->audio_codec_options = g_value_dup_string (value);
+      if (factory->audio_codec_options == NULL)
+        factory->audio_codec_options = g_strdup (DEFAULT_AUDIO_CODEC_OPTIONS);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, propid, pspec);
   }
@@ -301,6 +317,7 @@ create_payloader (GstRTSPCamMediaFactory *factory,
   GstElement *bin;
   gchar *description;
   gchar *name;
+  gint i;
 
   codec = find_codec (factory, codec_name);
   if (codec == NULL) {
@@ -308,6 +325,9 @@ create_payloader (GstRTSPCamMediaFactory *factory,
 
     return NULL;
   }
+
+  for (i = 0; i < strlen(codec_options); i++)
+    if (codec_options[i] == ',') codec_options[i] = ' ';
 
   description = g_strdup_printf (codec->bin, codec_options, payloader_number);
   GST_DEBUG_OBJECT (factory, "creating bin %s", codec->bin);
@@ -391,7 +411,8 @@ create_audio_payloader (GstRTSPCamMediaFactory *factory,
   GstElement *audioconvert;
   GstElement *audiorate;
 
-  pay = create_payloader (factory, factory->audio_codec, "", payloader_number);
+  pay = create_payloader (factory, factory->audio_codec,
+      factory->audio_codec_options, payloader_number);
   if (pay == NULL)
     return NULL;
 
